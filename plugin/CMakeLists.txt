@@ -4,6 +4,7 @@ set(PROJ_NAME "plugins_4_program")
 project(${PROJ_NAME})
 
 include_directories(${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/../inc)
+
 add_library(Interp4Move MODULE src/Interp4Move.cpp)
 add_custom_command(TARGET Interp4Move POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy libInterp4Move.so /tmp/bk_downloads
@@ -12,4 +13,10 @@ add_custom_command(TARGET Interp4Move POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E echo ""    
   )
 
-
+add_library(Interp4Pause MODULE src/Interp4Pause.cpp)
+add_custom_command(TARGET Interp4Pause POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy libInterp4Pause.so /tmp/bk_downloads
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E echo " Utworzony zostal plugin:  libInterp4Pause.so"
+    COMMAND ${CMAKE_COMMAND} -E echo ""    
+  )
