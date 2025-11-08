@@ -40,7 +40,7 @@ void Interp4Pause::PrintCmd() const
   /*
    *  Tu trzeba napisać odpowiednio zmodyfikować kod poniżej.
    */
-  cout << GetCmdName() << " " << _Time_ms  << " time value" << endl;
+  cout << GetCmdName() << " " << _Time_ms  << " (time value) " << endl;
 }
 
 
@@ -94,5 +94,5 @@ AbstractInterp4Command* Interp4Pause::CreateCmd()
  */
 void Interp4Pause::PrintSyntax() const
 {
-  cout << "   Pause  CzasPauzy[ms]" << endl;
+  cout << "   Pause  Czas_Pauzy[ms]" << endl;
 }

@@ -7,6 +7,7 @@ using namespace std;
 
 #define PLUGIN_NAME__move "libInterp4Move.so"
 #define PLUGIN_NAME__pause "libInterp4Pause.so"
+#define PLUGIN_NAME__rotate "libInterp4Rotate.so"
 
 
 int main()
@@ -75,4 +76,36 @@ int main()
   delete pCmd_Pause;
 
   dlclose(pLibHnd_Pause);
+
+    /*    ROTATE   */
+
+  void *pLibHnd_Rotate = dlopen(PLUGIN_NAME__rotate,RTLD_LAZY);
+  AbstractInterp4Command *(*pCreateCmd_Rotate)(void);
+
+  if (!pLibHnd_Rotate) {
+    cerr << "!!! Brak biblioteki: " PLUGIN_NAME__rotate << endl;
+    return 1;
+  }
+
+  pFun = dlsym(pLibHnd_Rotate,"CreateCmd");
+  if (!pFun) {
+    cerr << "!!! Nie znaleziono funkcji CreateCmd" << endl;
+    return 1;
+  }
+  pCreateCmd_Rotate = reinterpret_cast<AbstractInterp4Command* (*)(void)>(pFun);
+
+
+  AbstractInterp4Command *pCmd_Rotate = pCreateCmd_Rotate();
+
+  cout << endl;
+  cout << pCmd_Rotate->GetCmdName() << endl;
+  cout << endl;
+  pCmd_Rotate->PrintSyntax();
+  cout << endl;
+  pCmd_Rotate->PrintCmd();
+  cout << endl;
+  
+  delete pCmd_Rotate;
+
+  dlclose(pLibHnd_Rotate);
 }
