@@ -1,4 +1,7 @@
 #include "Preprocessor.hh"
+#include <cstdlib>   
+#include <cstdio>    
+#include <sstream>   
 
 Preprocessor::Preprocessor() {}
 
@@ -95,13 +98,33 @@ std::string ConvertMacros(std::string line, std::map<std::string, std::string> &
 
 
 std::string Preprocessor::ProcessFile(const std::string &input_file) {
+
+
+    std::string temp_file_name = "temp_preproc_" + input_file;  //try to use system cpp first
+    
+    std::string command = "cpp -P " + input_file + " > " + temp_file_name + " 2> /dev/null";
+
+    int result = std::system(command.c_str());
+
+    if (result == 0) {
+        std::ifstream temp_file(temp_file_name);
+        if (temp_file.is_open()) {
+            std::stringstream buffer;
+            buffer << temp_file.rdbuf(); 
+            temp_file.close();
+            std::remove(temp_file_name.c_str()); 
+            
+            return buffer.str(); 
+        }
+    }
+
     std::ifstream file(input_file);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file " << input_file << std::endl;
         return "";
     }
 
-    std::string line, output;
+    std::string line, output;   // manual preprocessing
     bool in_multiline_comment = false;
     std::map<std::string, std::string> macros;
 
