@@ -7,12 +7,12 @@
 
 class Cuboid : public AbstractMobileObj {
   private:
+    std::string _name;  
     Vector3D _shift;
     Vector3D _trans_m;     
     Vector3D _scale;        
     Vector3D _rgb;          
     Vector3D _rotxyz_deg;
-    std::string _name;      
 
   public:
     Cuboid(){
@@ -42,6 +42,9 @@ class Cuboid : public AbstractMobileObj {
     
     const Vector3D& GetRGB() const {return _rgb;}
     void SetRGB(const Vector3D& rgb) {_rgb = rgb;}
+
+    const Vector3D & GetPosition_m() const {return _trans_m;}
+    void SetPosition_m(const Vector3D & rTrans) {_trans_m = rTrans;}
 };
 
 #endif

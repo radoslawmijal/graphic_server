@@ -7,7 +7,7 @@
 class Configuration {
   public:
     Set4LibInterfaces LibManager;
-    Scene Scene;
+    Scene Scn;
 };
 
 

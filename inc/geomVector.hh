@@ -442,7 +442,7 @@ std::ostream & operator << ( std::ostream &OStrm, const geom::Vector<Type,Size> 
 
 template<typename Type, unsigned int Size>
 inline
-std::ostream & operator >> ( std::ostream &IStrm, const geom::Vector<Type,Size> &V)
+std::istream & operator >> (std::istream &IStrm, geom::Vector<Type,Size> &V)
 {
   for(unsigned int Ind = 0; Ind < Size; ++Ind) {
      IStrm >> V[Ind];

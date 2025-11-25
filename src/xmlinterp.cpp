@@ -4,8 +4,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
-
-
+#include "Cuboid.hh"
+#include "geomVector.hh"
 
 using namespace std;
 
@@ -14,7 +14,7 @@ using namespace std;
  * Konstruktor klasy. Tutaj należy zainicjalizować wszystkie
  * dodatkowe pola.
  */
-XMLInterp4Config::XMLInterp4Config(Configuration &rConfig)
+XMLInterp4Config::XMLInterp4Config(Configuration &rConfig) : _config(rConfig)
 {
 }
 
@@ -65,7 +65,11 @@ void XMLInterp4Config::ProcessLibAttrs(const xercesc::Attributes  &rAttrs)
 
  cout << "  Nazwa biblioteki: " << sLibName << endl;
 
- // Tu trzeba wpisać własny kod ...
+ if (!_config.LibManager.AddPlugin(sLibName)) {
+     cerr << "  BLAD: Nie udalo sie zaladowac biblioteki: " << sLibName << endl;
+ } else {
+     cout << "  Biblioteka zaladowana poprawnie." << endl;
+ }
 
  xercesc::XMLString::release(&sParamName);
  xercesc::XMLString::release(&sLibName);
@@ -83,70 +87,60 @@ void XMLInterp4Config::ProcessCubeAttrs(const xercesc::Attributes  &rAttrs)
       cerr << "Zla ilosc atrybutow dla \"Cube\"" << endl;
       exit(1);
  }
+    Cuboid *newObj = new Cuboid();
+    cout << " Atrybuty:" << endl; 
 
- /*
-  *  Tutaj pobierane sa nazwy pierwszego i drugiego atrybuty.
-  *  Sprawdzamy, czy na pewno jest to Name i Value.
-  */
+    for(XMLSize_t i = 0; i < rAttrs.getLength(); i++) {
+        
+        char* sAttrName = xercesc::XMLString::transcode(rAttrs.getQName(i));
+        char* sAttrValue = xercesc::XMLString::transcode(rAttrs.getValue(i));
+        cout << "     " << sAttrName << " = \"" << sAttrValue << "\"" << endl;
 
- char* sName_Name = xercesc::XMLString::transcode(rAttrs.getQName(0));
- char* sName_Scale = xercesc::XMLString::transcode(rAttrs.getQName(1));
- char* sName_RGB = xercesc::XMLString::transcode(rAttrs.getQName(2));
+        string attrName = sAttrName;
+        istringstream IStrm(sAttrValue);
 
- XMLSize_t  Index = 0;
- char* sValue_Name    = xercesc::XMLString::transcode(rAttrs.getValue(Index));
- char* sValue_Scale = xercesc::XMLString::transcode(rAttrs.getValue(1));
- char* sValue_RGB     = xercesc::XMLString::transcode(rAttrs.getValue(2));
+        if (attrName == "Name") {
+            newObj->SetName(sAttrValue);
+        }
+        else if (attrName == "Scale") {
+             Vector3D scale;
+             IStrm >> scale;
+             if (!IStrm.fail()) newObj->SetScale(scale);
+        }
+        else if (attrName == "Shift") {
+             Vector3D shift;
+             IStrm >> shift;
+             newObj->SetShift(shift);
+        }
+        else if (attrName == "Trans_m") {
+             Vector3D trans;
+             IStrm >> trans;
+             newObj->SetPosition_m(trans);
+        }
+        else if (attrName == "RotXYZ_deg") {
+             Vector3D rot;
+             IStrm >> rot;
+             newObj->SetAng_Roll_deg(rot[0]);
+             newObj->SetAng_Pitch_deg(rot[1]);
+             newObj->SetAng_Yaw_deg(rot[2]);
+        }
+        else if (attrName == "RGB") {
+             Vector3D rgb;
+             int r, g, b;
+             IStrm >> r >> g >> b;
+             rgb[0]=r; rgb[1]=g; rgb[2]=b;
+             newObj->SetRGB(rgb);
+        }
 
+        // Ważne: Zwolnienie pamięci po KAŻDYM obiegu pętli
+        xercesc::XMLString::release(&sAttrName);
+        xercesc::XMLString::release(&sAttrValue);
+    }
+    cout << endl; // Odstęp po wypisaniu atrybutów
 
- //-----------------------------------------------------------------------------
- // Wyświetlenie nazw atrybutów i ich "wartości"
- //
- cout << " Atrybuty:" << endl
-      << "     " << sName_Name << " = \"" << sValue_Name << "\"" << endl
-      << "     " << sName_Scale << " = \"" << sValue_Scale << "\"" << endl
-      << "     " << sName_RGB << " = \"" << sValue_RGB << "\"" << endl   
-      << endl; 
- //-----------------------------------------------------------------------------
- // Przykład czytania wartości parametrów
- // Ten przykład jest zrobiony "na piechotę" wykorzystując osobne zmienne.
- // Skala powinna być wektorem. Czytanie powinno być rezlizowane z wykorzysaniem
- // wektorów, np.
- //
- //
- // istringstream IStrm;
- // IStrm.str(sValue_Scale);
- // Vector3D  Scale;
- //
- // IStrm >> Scale;
- //
- istringstream   IStrm;
- 
- IStrm.str(sValue_Scale);
- double  Sx,Sy,Sz;
-
- IStrm >> Sx >> Sy >> Sz;
- if (IStrm.fail()) {
-     cerr << " Blad!!!" << endl;
- } else {
-     cout << " Czytanie wartosci OK!!!" << endl;
-     cout << "     " << Sx << "  " << Sy << "  " << Sz << endl;
- }
-
- // Tu trzeba wstawić odpowiednio własny kod ...
-
- xercesc::XMLString::release(&sName_Name);
- xercesc::XMLString::release(&sName_Scale);
- xercesc::XMLString::release(&sName_RGB);
- xercesc::XMLString::release(&sValue_Name);
- xercesc::XMLString::release(&sValue_Scale);
- xercesc::XMLString::release(&sValue_RGB);
+    // 3. Dodanie do sceny
+    _config.Scn.AddMobileObj(newObj);
 }
-
-
-
-
-
 
 
 /*!
@@ -295,12 +289,8 @@ void XMLInterp4Config::fatalError(const xercesc::SAXParseException&  rException)
  */
 void XMLInterp4Config::error(const xercesc::SAXParseException&  rException)
 {
-  cerr << "Blad ..." << endl;
-
-  /*
-   * Tutaj należy wstawić odpowiedni kod. Tekst wyświetlany powyżej
-   * jest tylko "atrapą".
-   */
+  cerr << "Blad!" << endl;
+  fatalError(rException);
 }
 
 
@@ -312,10 +302,7 @@ void XMLInterp4Config::error(const xercesc::SAXParseException&  rException)
  */
 void XMLInterp4Config::warning(const xercesc::SAXParseException&  rException)  
 {
-  cerr << "Ostrzezenie ..." << endl;
-
-  /*
-   * Tutaj należy wstawić odpowiedni kod. Tekst wyświetlany powyżej
-   * jest tylko "atrapą".
-   */
+  char* sMessage = xercesc::XMLString::transcode(rException.getMessage());
+  cerr << "Ostrzezenie XML: " << sMessage << " (linia: " << rException.getLineNumber() << ")" << endl;
+  xercesc::XMLString::release(&sMessage);
 }
