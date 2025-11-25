@@ -1,0 +1,7 @@
+#define PREDKOSC 10
+
+Set Podstawa 0 0 0 0 0 0
+Move Podstawa 10 20
+Rotate Ramie OX PREDKOSC 90
+Pause 1000
+Move Ramie 5 10

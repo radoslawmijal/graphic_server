@@ -17,7 +17,10 @@ class Interp4Set: public AbstractInterp4Command {
    */
   double _x_pos;    /*!< Przykładowy parametr - pozycja X obiektu mobilnego */
   double _y_pos;    /*!< Przykładowy parametr - pozycja Y obiektu mobilnego */
-  double _degrees;  /*!< Przykładowy parametr - kąt obrotu obiektu mobilnego */
+  double _z_pos;    /*!< Przykładowy parametr - pozycja Z obiektu mobilnego */
+  double _rot_x;  /*!< Przykładowy parametr - kąt obrotu obiektu mobilnego */
+  double _rot_y;  /*!< Przykładowy parametr - kąt obrotu obiektu mobilnego */
+  double _rot_z; /*!< Przykładowy parametr - kąt obrotu ob */
  public:
   /*!
    * \brief

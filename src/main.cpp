@@ -1,63 +1,99 @@
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <dlfcn.h>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <xercesc/sax2/DefaultHandler.hpp>
+#include <xercesc/util/XMLString.hpp>
+
 #include "AbstractInterp4Command.hh"
 #include "Set4LibInterfaces.hh"
+#include "ProgramInterpreter.hh"
+#include "Configuration.hh"
+#include "xmlinterp.hh" 
 
 using namespace std;
+using namespace xercesc; 
 
-#define PLUGIN_NAME__move "libInterp4Move.so"
-#define PLUGIN_NAME__pause "libInterp4Pause.so"
-#define PLUGIN_NAME__rotate "libInterp4Rotate.so"
-#define PLUGIN_NAME__set "libInterp4Set.so"
 
-#define COMMANDS_FILE_NAME "commands.txt"
-
-int main()
+bool ReadFile(const char* sFileName, Configuration &rConfig)
 {
-  Set4LibInterfaces LibManager;
-  cout << "Wczytywanie wtyczek..." << endl;
+   try {
+            XMLPlatformUtils::Initialize();
+   }
+   catch (const XMLException& toCatch) {
+            char* message = XMLString::transcode(toCatch.getMessage());
+            cerr << "Error during initialization! :\n";
+            cerr << "Exception message is: \n"
+                 << message << "\n";
+            XMLString::release(&message);
+            return false;
+   }
 
-  LibManager.AddPlugin(PLUGIN_NAME__move);
-  LibManager.AddPlugin(PLUGIN_NAME__pause);
-  LibManager.AddPlugin(PLUGIN_NAME__rotate);
-  LibManager.AddPlugin(PLUGIN_NAME__set);
-  cout << "Wtyczki wczytane." << endl;
+   SAX2XMLReader* pParser = XMLReaderFactory::createXMLReader();
 
-  ifstream CmdFile(COMMANDS_FILE_NAME);
-  if (!CmdFile.is_open())
-  {
-    cerr << "!!! Błąd: Nie mozna otworzyc pliku z komendami: " << COMMANDS_FILE_NAME << endl;
-    return 1;
+   pParser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);
+   pParser->setFeature(XMLUni::fgSAX2CoreValidation, true);
+   pParser->setFeature(XMLUni::fgXercesDynamic, false);
+   pParser->setFeature(XMLUni::fgXercesSchema, true);
+   pParser->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
+   pParser->setFeature(XMLUni::fgXercesValidationErrorAsFatal, true);
+
+   DefaultHandler* pHandler = new XMLInterp4Config(rConfig);
+   pParser->setContentHandler(pHandler);
+   pParser->setErrorHandler(pHandler);
+
+   try {
+     if (!pParser->loadGrammar("config/config.xsd", xercesc::Grammar::SchemaGrammarType, true)) {
+       cerr << "!!! Plik config/config.xsd nie moze zostac wczytany." << endl;
+       return false;
+     }
+     pParser->setFeature(XMLUni::fgXercesUseCachedGrammarInParse, true);
+     pParser->parse(sFileName);
+   }
+   catch (const XMLException& Exception) {
+            char* sMessage = XMLString::transcode(Exception.getMessage());
+            cerr << "Informacja o wyjatku: \n" << sMessage << "\n";
+            XMLString::release(&sMessage);
+            return false;
+   }
+   catch (const SAXParseException& Exception) {
+            char* sMessage = XMLString::transcode(Exception.getMessage());
+            char* sSystemId = xercesc::XMLString::transcode(Exception.getSystemId());
+            cerr << "Blad! " << endl
+                 << "    Plik:  " << sSystemId << endl
+                 << "   Linia: " << Exception.getLineNumber() << endl
+                 << " Informacja: " << sMessage << endl;
+            XMLString::release(&sMessage);
+            XMLString::release(&sSystemId);
+            return false;
+   }
+   catch (...) {
+            cout << "Zgloszony zostal nieoczekiwany wyjatek!\n" ;
+            return false;
+   }
+
+   delete pParser;
+   delete pHandler;
+   return true;
+}
+
+int main(int argc, char* argv[])
+{
+  if (argc < 3) {
+      cerr << "Uzycie: ./interpreter plik_komend.cmd plik_konfiguracyjny.xml" << endl;
+      return 1;
   }
-  cout << "Plik z komendami otwarty." << endl;
-  string CommandName;
 
-  while (CmdFile >> CommandName){
-    cout << "Wczytano komende: " << CommandName << endl;
+  Configuration Config;
 
-    shared_ptr<LibInterface> pPlugin = LibManager.FindPlugin(CommandName);
-    if (pPlugin == nullptr){
-      cerr << "!!! Błąd: Nie znaleziono wtyczki dla komendy: " << CommandName << endl;
-      continue;
-    }
 
-    AbstractInterp4Command* pInterpreter = pPlugin->CreateInterp();
-    if (pInterpreter == nullptr){
-      cerr << "!!! Błąd: Nie mozna utworzyc interpretera dla komendy: " << CommandName << endl;
-      continue;
-    }
-
-    cout << "Składnia komendy: " << CommandName << endl;
-    pInterpreter->PrintSyntax();
-
-    delete pInterpreter;
-    cout << endl;
+  if (!ReadFile(argv[2], Config)) {
+      return 1;
   }
 
-  CmdFile.close();
-  cout << "Plik z komendami zamknięty." << endl;
+  ProgramInterpreter progInterp(Config.Scn, Config.LibManager);
+
+  progInterp.ExecProgram(argv[1]);
 
   return 0;
 }

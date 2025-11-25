@@ -73,9 +73,12 @@ bool Interp4Move::ExecCmd( AbstractScene      &rScn,
  */
 bool Interp4Move::ReadParams(std::istream& Strm_CmdsList)
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
+  std::string obj_name;
+
+  if (!(Strm_CmdsList >> obj_name >> _Speed_mmS >> _Distance_mm)) {
+      cout << "Blad wczytywania parametrow Move!" << endl;
+      return false;
+  }
   return true;
 }
 

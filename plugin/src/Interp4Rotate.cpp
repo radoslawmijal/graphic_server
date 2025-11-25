@@ -73,9 +73,12 @@ bool Interp4Rotate::ExecCmd( AbstractScene      &rScn,
  */
 bool Interp4Rotate::ReadParams(std::istream& Strm_CmdsList)
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
+  std::string obj_name, axis_name;
+
+  if (!(Strm_CmdsList >> obj_name >> axis_name >> _Angle_speed >> _Angle_degree)) {
+      cout << "Blad wczytywania parametrow Rotate!" << endl;
+      return false;
+  }
   return true;
 }
 

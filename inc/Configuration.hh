@@ -6,6 +6,8 @@
 
 class Configuration {
   public:
+  Configuration() = default;
+  ~Configuration() = default;
     Set4LibInterfaces LibManager;
     Scene Scn;
 };

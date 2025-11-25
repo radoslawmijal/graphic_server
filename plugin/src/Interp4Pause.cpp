@@ -73,9 +73,10 @@ bool Interp4Pause::ExecCmd( AbstractScene      &rScn,
  */
 bool Interp4Pause::ReadParams(std::istream& Strm_CmdsList)
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
+  if (!(Strm_CmdsList >> _Time_ms)) {
+      cout << "Blad wczytywania parametrow Pause!" << endl;
+      return false;
+  }
   return true;
 }
 

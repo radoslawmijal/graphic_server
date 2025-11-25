@@ -63,9 +63,11 @@ void XMLInterp4Config::ProcessLibAttrs(const xercesc::Attributes  &rAttrs)
  XMLSize_t  Size = 0;
  char* sLibName = xercesc::XMLString::transcode(rAttrs.getValue(Size));
 
- cout << "  Nazwa biblioteki: " << sLibName << endl;
+ std::string LibPath = "../build/plugin/" + std::string(sLibName);
 
- if (!_config.LibManager.AddPlugin(sLibName)) {
+ cout << "  Szukam wtyczki w: " << LibPath << endl;
+
+ if (!_config.LibManager.AddPlugin(LibPath)) {
      cerr << "  BLAD: Nie udalo sie zaladowac biblioteki: " << sLibName << endl;
  } else {
      cout << "  Biblioteka zaladowana poprawnie." << endl;
@@ -132,13 +134,12 @@ void XMLInterp4Config::ProcessCubeAttrs(const xercesc::Attributes  &rAttrs)
              newObj->SetRGB(rgb);
         }
 
-        // Ważne: Zwolnienie pamięci po KAŻDYM obiegu pętli
+
         xercesc::XMLString::release(&sAttrName);
         xercesc::XMLString::release(&sAttrValue);
     }
-    cout << endl; // Odstęp po wypisaniu atrybutów
+    cout << endl; 
 
-    // 3. Dodanie do sceny
     _config.Scn.AddMobileObj(newObj);
 }
 
@@ -306,3 +307,4 @@ void XMLInterp4Config::warning(const xercesc::SAXParseException&  rException)
   cerr << "Ostrzezenie XML: " << sMessage << " (linia: " << rException.getLineNumber() << ")" << endl;
   xercesc::XMLString::release(&sMessage);
 }
+
