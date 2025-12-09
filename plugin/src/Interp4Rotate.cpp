@@ -40,7 +40,7 @@ void Interp4Rotate::PrintCmd() const
   /*
    *  Tu trzeba napisać odpowiednio zmodyfikować kod poniżej.
    */
-  cout << GetCmdName() << " " << _Angle_speed << " (speed value) " << _Angle_degree << " (degree value) " << endl;
+  cout << GetCmdName() << " " << _Obj_name << " " << _Axis_name << " (axis name) " << _Angle_speed << " (speed value) " << _Angle_degree << " (degree value) " << endl;
 }
 
 
@@ -73,9 +73,7 @@ bool Interp4Rotate::ExecCmd( AbstractScene      &rScn,
  */
 bool Interp4Rotate::ReadParams(std::istream& Strm_CmdsList)
 {
-  std::string obj_name, axis_name;
-
-  if (!(Strm_CmdsList >> obj_name >> axis_name >> _Angle_speed >> _Angle_degree)) {
+  if (!(Strm_CmdsList >> _Obj_name >> _Axis_name >> _Angle_speed >> _Angle_degree)) {
       cout << "Blad wczytywania parametrow Rotate!" << endl;
       return false;
   }
@@ -97,5 +95,5 @@ AbstractInterp4Command* Interp4Rotate::CreateCmd()
  */
 void Interp4Rotate::PrintSyntax() const
 {
-  cout << "   Rotate  Nazwa_Obiektu Prędkosc_Kątowa[◦/s]  Kąt[◦]" << endl;
+  cout << "   Rotate  Nazwa_Obiektu Oś Prędkosc_Kątowa[◦/s]  Kąt[◦]" << endl;
 }

@@ -26,6 +26,8 @@ class Interp4Rotate: public AbstractInterp4Command {
    *  do przechowywania wartości parametrów danego polecenia.
    *  Ponieżej zdefiniowane jest tylko jedno pole jako przykład.
    */
+  std::string _Obj_name;   
+  std::string _Axis_name;
   double  _Angle_speed;   /*!< Prędkość kątowa obrotu [stopnie/sekunda] */
   double  _Angle_degree;  /*!< Kąt obrotu [stopnie] */
 

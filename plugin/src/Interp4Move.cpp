@@ -40,7 +40,7 @@ void Interp4Move::PrintCmd() const
   /*
    *  Tu trzeba napisać odpowiednio zmodyfikować kod poniżej.
    */
-  cout << GetCmdName() << " " << _Speed_mmS  << " (speed value) " << _Distance_mm << " (distance value) " << endl;
+  cout << GetCmdName() << " " << _Obj_name << " " << _Speed_mmS  << " (speed value) " << _Distance_mm << " (distance value) " << endl;
 }
 
 
@@ -73,9 +73,7 @@ bool Interp4Move::ExecCmd( AbstractScene      &rScn,
  */
 bool Interp4Move::ReadParams(std::istream& Strm_CmdsList)
 {
-  std::string obj_name;
-
-  if (!(Strm_CmdsList >> obj_name >> _Speed_mmS >> _Distance_mm)) {
+  if (!(Strm_CmdsList >> _Obj_name >> _Speed_mmS >> _Distance_mm)) {
       cout << "Blad wczytywania parametrow Move!" << endl;
       return false;
   }
