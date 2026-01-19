@@ -1,5 +1,9 @@
 #include <iostream>
 #include "Interp4Move.hh"
+#include <unistd.h>
+#include <cmath>
+#include <sstream>
+#include <cstring>
 
 
 using std::cout;
@@ -56,15 +60,53 @@ const char* Interp4Move::GetCmdName() const
 /*!
  *
  */
-bool Interp4Move::ExecCmd( AbstractScene      &rScn, 
-                           const char         *sMobObjName,
-			   AbstractComChannel &rComChann
-			 )
+bool Interp4Move::ExecCmd(AbstractScene &rScn, AbstractComChannel *pComChann) 
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
-  return true;
+    AbstractMobileObj* pObj = rScn.FindMobileObj(_Obj_name.c_str());
+    
+    // if object not found
+    if (pObj == nullptr) {
+        std::cerr << "Blad: Nie znaleziono obiektu: " << _Obj_name << std::endl;
+        return false;
+    }
+
+    // get data in proper units
+    Vector3D currentPos = pObj->GetPosition_m();
+    
+    double angle_yaw_rad = pObj->GetAng_Yaw_deg() * M_PI / 180.0;
+    double angle_pitch_rad = pObj->GetAng_Pitch_deg() * M_PI / 180.0;
+
+    // update position
+    currentPos[0] += _Distance_mm * cos(angle_pitch_rad) * cos(angle_yaw_rad);
+    currentPos[1] += _Distance_mm * cos(angle_pitch_rad) * sin(angle_yaw_rad);
+    currentPos[2] += _Distance_mm * sin(angle_pitch_rad);
+    
+    pObj->SetPosition_m(currentPos);
+
+    // prepare command
+    std::ostringstream cmdStream;
+    cmdStream << "UpdateObj Name=" << _Obj_name 
+              << " Shift=(" << currentPos[0] << "," << currentPos[1] << "," << currentPos[2] << ")"
+              << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
+                                 << pObj->GetAng_Pitch_deg() << "," 
+                                 << pObj->GetAng_Yaw_deg() << ")\n";
+    
+    std::string command = cmdStream.str();
+
+    // send command to server
+    {
+        std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
+        int socket = pComChann->GetSocket();
+        
+        if (write(socket, command.c_str(), command.length()) < 0) {
+            std::cerr << "Blad wysylania polecenia do serwera!" << std::endl;
+            return false;
+        }
+    }
+
+    usleep(100000);
+
+    return true;
 }
 
 

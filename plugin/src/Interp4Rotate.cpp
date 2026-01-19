@@ -1,4 +1,7 @@
 #include <iostream>
+#include <sstream>
+#include <cmath>
+#include <unistd.h>
 #include "Interp4Rotate.hh"
 
 
@@ -57,14 +60,56 @@ const char* Interp4Rotate::GetCmdName() const
  *
  */
 bool Interp4Rotate::ExecCmd( AbstractScene      &rScn, 
-                           const char         *sMobObjName,
-			   AbstractComChannel &rComChann
+			   AbstractComChannel *pComChann
 			 )
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
-  return true;
+    AbstractMobileObj* pObj = rScn.FindMobileObj(_Obj_name.c_str());
+    
+    // error if object not found
+    if (pObj == nullptr) {
+        std::cerr << "Blad: Nie znaleziono obiektu: " << _Obj_name << std::endl;
+        return false;
+    }
+
+    // perform rotation
+    if (_Axis_name == "OX") {
+        double current = pObj->GetAng_Roll_deg();
+        pObj->SetAng_Roll_deg(current + _Angle_degree);
+    } else if (_Axis_name == "OY") {
+        double current = pObj->GetAng_Pitch_deg();
+        pObj->SetAng_Pitch_deg(current + _Angle_degree);
+    } else if (_Axis_name == "OZ") {
+        double current = pObj->GetAng_Yaw_deg();
+        pObj->SetAng_Yaw_deg(current + _Angle_degree);
+    } else {
+        std::cerr << "Blad: Nieznana os obrotu: " << _Axis_name << std::endl;
+        return false;
+    }
+
+    // prepare command to send to server
+    std::ostringstream cmdStream;
+    const Vector3D &pos = pObj->GetPosition_m();
+    
+    cmdStream << "UpdateObj Name=" << _Obj_name 
+              << " Shift=(" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
+              << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
+                                 << pObj->GetAng_Pitch_deg() << "," 
+                                 << pObj->GetAng_Yaw_deg() << ")\n";
+    
+    std::string command = cmdStream.str();
+
+    // send command to server
+    {
+        std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
+        int socket = pComChann->GetSocket();
+        if (write(socket, command.c_str(), command.length()) < 0) {
+            std::cerr << "Blad wysylania polecenia Rotate do serwera!" << std::endl;
+            return false;
+        }
+    }
+
+    usleep(100000); 
+    return true;
 }
 
 
