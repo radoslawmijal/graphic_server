@@ -24,6 +24,10 @@ class ProgramInterpreter : public AbstractComChannel {
 
     bool ConnectToServer(const char* addr, int port);
 
+    virtual void Init(int Socket) override {_socket = Socket; }
+    virtual void LockAccess() override { _mtx.lock(); }
+    virtual void UnlockAccess() override { _mtx.unlock(); }
+
     virtual int GetSocket() const override { return _socket; }
     virtual std::mutex & UseGuard() override { return _mtx; }
 };

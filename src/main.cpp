@@ -85,13 +85,16 @@ int main(int argc, char* argv[])
   }
 
   Configuration Config;
+  ProgramInterpreter progInterp(Config.Scn, Config.LibManager);
 
+  if (!progInterp.ConnectToServer("127.0.0.1", 6217)) {
+      cerr << "Nie udalo sie polaczyc z serwerem graficznym!" << endl;
+      return 1;
+  }
 
   if (!ReadFile(argv[2], Config)) {
       return 1;
   }
-
-  ProgramInterpreter progInterp(Config.Scn, Config.LibManager);
 
   progInterp.ExecProgram(argv[1]);
 
