@@ -6,6 +6,8 @@
 #include <iostream>
 #include "Cuboid.hh"
 #include "geomVector.hh"
+#include <unistd.h>
+
 
 using namespace std;
 
@@ -14,7 +16,7 @@ using namespace std;
  * Konstruktor klasy. Tutaj należy zainicjalizować wszystkie
  * dodatkowe pola.
  */
-XMLInterp4Config::XMLInterp4Config(Configuration &rConfig) : _config(rConfig)
+XMLInterp4Config::XMLInterp4Config(Configuration &rConfig, AbstractComChannel *pComChann) : _config(rConfig), _pComChann(pComChann)
 {
 }
 
@@ -141,6 +143,35 @@ void XMLInterp4Config::ProcessCubeAttrs(const xercesc::Attributes  &rAttrs)
     cout << endl; 
 
     _config.Scn.AddMobileObj(newObj);
+
+    if (_pComChann != nullptr) {
+        std::ostringstream cmdStream;
+        
+        // get parameters of the new object
+        Vector3D pos = newObj->GetPosition_m();
+        Vector3D scale = newObj->GetScale(); 
+        Vector3D rgb = newObj->GetRGB();
+
+        // AddObj command
+        cmdStream << "AddObj Name=" << newObj->GetName()
+                  << " Type=Cuboid" 
+                  << " RGB=(" << (int)rgb[0] << "," << (int)rgb[1] << "," << (int)rgb[2] << ")"
+                  << " Scale=(" << scale[0] << "," << scale[1] << "," << scale[2] << ")"
+                  << " Shift=(" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
+                  << " RotXYZ_deg=(" << newObj->GetAng_Roll_deg() << "," 
+                                     << newObj->GetAng_Pitch_deg() << "," 
+                                     << newObj->GetAng_Yaw_deg() << ")\n";
+
+        std::string command = cmdStream.str();
+        
+        // send the command to the server
+        std::lock_guard<std::mutex> Lock(_pComChann->UseGuard());
+        ssize_t bytesSent = write(_pComChann->GetSocket(), command.c_str(), command.length());
+        
+        if (bytesSent < 0) {
+            cerr << "!!! Blad wysylania AddObj dla obiektu: " << newObj->GetName() << endl;
+        }
+    }
 }
 
 

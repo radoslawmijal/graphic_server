@@ -13,6 +13,7 @@
 //XERCES_CPP_NAMESPACE_USE
 
 #include "Configuration.hh"
+#include "AbstractComChannel.hh"
 
 
 /*!
@@ -24,11 +25,13 @@
 class XMLInterp4Config : public xercesc::DefaultHandler {
   private:
     Configuration &_config; 
+    AbstractComChannel *_pComChann;
+
   public:
    /*!
     * \brief Inicjalizuje obiekt i kojarzy go z listą poleceń robota
     */
-  XMLInterp4Config(Configuration &rConfig);
+  XMLInterp4Config(Configuration &rConfig, AbstractComChannel *pComChann);
 
    /*!
     * \brief Wywoływana jest na początku dokumentu

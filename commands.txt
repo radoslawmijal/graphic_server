@@ -1,7 +1,25 @@
-#define PREDKOSC 10
+#define PREDKOSC_RUCHU 10
+#define PREDKOSC_OBROTU 30
+#define PAUZA_STARTOWA 1000
 
-Pause 1000
-Set Podstawa 0 0 0 0 0 0
-Move Podstawa 10 20
-Rotate Ramie OX PREDKOSC 90
-Move Ramie 5 10
+Set Podstawa 0 0 0 0 0 10
+Set Podstawa.Ramie1 0 0.7 0 0 0 0
+Set Podstawa.Ramie1.Ramie2 0 0.7 0 0 0 0
+
+Pause PAUZA_STARTOWA
+
+Move Podstawa PREDKOSC_RUCHU 0.5
+
+Pause 500
+
+Rotate Podstawa.Ramie1 OZ PREDKOSC_OBROTU 45
+
+Pause 500
+
+Rotate Podstawa.Ramie1.Ramie2 OX PREDKOSC_OBROTU 30
+
+Pause 500
+
+Move Podstawa PREDKOSC_RUCHU 0.2
+
+Pause 2000

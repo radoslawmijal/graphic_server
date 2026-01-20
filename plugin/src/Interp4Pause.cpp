@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Interp4Pause.hh"
+#include <unistd.h>
 
 
 using std::cout;
@@ -57,13 +58,13 @@ const char* Interp4Pause::GetCmdName() const
  *
  */
 bool Interp4Pause::ExecCmd( AbstractScene      &rScn, 
-                           const char         *sMobObjName,
-			   AbstractComChannel &rComChann
+			   AbstractComChannel *pComChann
 			 )
 {
   /*
    *  Tu trzeba napisać odpowiedni kod.
    */
+  usleep(_Time_ms * 1000);
   return true;
 }
 

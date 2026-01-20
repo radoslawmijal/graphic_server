@@ -21,3 +21,9 @@ Uwaga: Po wygenerowaniu dokumentacji uruchamiany jest program less,
        zglasza program doxygen. Aby zakonczyc jego dzialanie i wyjsc
        z trybu przegladania, nalezy nacisnac klawisz 'Q'.
 
+
+
+
+./cmds_interpreter commands.txt config.xml
+
+struktura build: cmds_interpreter, commands.txt, config.xml, config/config.xsd

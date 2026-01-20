@@ -57,8 +57,7 @@ class Interp4Set: public AbstractInterp4Command {
    * \retval false - w przypadku przeciwnym.
    */
   virtual bool ExecCmd( AbstractScene      &rScn, 
-                        const char         *sMobObjName,
-                        AbstractComChannel &rComChann ) override;
+                        AbstractComChannel *pComChann ) override;
   /*!
    * \brief Czyta wartości parametrów danego polecenia
    */

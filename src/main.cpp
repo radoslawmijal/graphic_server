@@ -15,8 +15,9 @@ using namespace std;
 using namespace xercesc; 
 
 
-bool ReadFile(const char* sFileName, Configuration &rConfig)
+bool ReadFile(const char* sFileName, Configuration &rConfig, ProgramInterpreter &rInterp)
 {
+  // Initialize the XML
    try {
             XMLPlatformUtils::Initialize();
    }
@@ -29,6 +30,7 @@ bool ReadFile(const char* sFileName, Configuration &rConfig)
             return false;
    }
 
+   // Create parser object
    SAX2XMLReader* pParser = XMLReaderFactory::createXMLReader();
 
    pParser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);
@@ -38,10 +40,11 @@ bool ReadFile(const char* sFileName, Configuration &rConfig)
    pParser->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
    pParser->setFeature(XMLUni::fgXercesValidationErrorAsFatal, true);
 
-   DefaultHandler* pHandler = new XMLInterp4Config(rConfig);
+   DefaultHandler* pHandler = new XMLInterp4Config(rConfig, &rInterp);
    pParser->setContentHandler(pHandler);
    pParser->setErrorHandler(pHandler);
 
+   // Parse the XML file
    try {
      if (!pParser->loadGrammar("config/config.xsd", xercesc::Grammar::SchemaGrammarType, true)) {
        cerr << "!!! Plik config/config.xsd nie moze zostac wczytany." << endl;
@@ -79,6 +82,7 @@ bool ReadFile(const char* sFileName, Configuration &rConfig)
 
 int main(int argc, char* argv[])
 {
+  // Get args
   if (argc < 3) {
       cerr << "Uzycie: ./interpreter plik_komend.cmd plik_konfiguracyjny.xml" << endl;
       return 1;
@@ -87,15 +91,18 @@ int main(int argc, char* argv[])
   Configuration Config;
   ProgramInterpreter progInterp(Config.Scn, Config.LibManager);
 
+  // connect to graphics server
   if (!progInterp.ConnectToServer("127.0.0.1", 6217)) {
       cerr << "Nie udalo sie polaczyc z serwerem graficznym!" << endl;
       return 1;
   }
 
-  if (!ReadFile(argv[2], Config)) {
+  // read configuration file
+  if (!ReadFile(argv[2], Config, progInterp)) {
       return 1;
   }
 
+  // execute program
   progInterp.ExecProgram(argv[1]);
 
   return 0;

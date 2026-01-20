@@ -1,5 +1,8 @@
 #include <iostream>
 #include "Interp4Set.hh"
+#include <sstream>
+#include <unistd.h>
+#include <Vector3D.hh>
 
 
 using std::cout;
@@ -58,13 +61,44 @@ const char* Interp4Set::GetCmdName() const
  *
  */
 bool Interp4Set::ExecCmd( AbstractScene      &rScn, 
-                           const char         *sMobObjName,
-			   AbstractComChannel &rComChann
+			   AbstractComChannel *pComChann
 			 )
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
+  // get object by name
+  AbstractMobileObj* pObj = rScn.FindMobileObj(_ObjName.c_str());
+  if (pObj == nullptr) {
+      std::cerr << "Blad: Nie znaleziono obiektu: " << _ObjName << std::endl;
+      return false;
+  }
+
+  // get new position and orientation
+  Vector3D newPos;
+  newPos[0] = _x_pos;
+  newPos[1] = _y_pos;
+  newPos[2] = _z_pos;
+  pObj->SetPosition_m(newPos);
+  pObj->SetAng_Roll_deg(_rot_x);
+  pObj->SetAng_Pitch_deg(_rot_y);
+  pObj->SetAng_Yaw_deg(_rot_z);
+
+  // prepare command string
+  std::ostringstream cmdStream;
+  cmdStream << "UpdateObj Name=" << _ObjName 
+            << " Shift=(" << _x_pos << "," << _y_pos << "," << _z_pos << ")"
+            << " RotXYZ_deg=(" << _rot_x << "," << _rot_y << "," << _rot_z << ")\n";
+  
+  std::string command = cmdStream.str();
+
+  // send to server
+  {
+      std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
+      int socket = pComChann->GetSocket();
+      if (write(socket, command.c_str(), command.length()) < 0) {
+          std::cerr << "Blad wysylania polecenia Set do serwera!" << std::endl;
+          return false;
+      }
+  }
+
   return true;
 }
 
@@ -96,5 +130,5 @@ AbstractInterp4Command* Interp4Set::CreateCmd()
  */
 void Interp4Set::PrintSyntax() const
 {
-  cout << "   Set  Nazwa_Obiektu  wsp_x  wsp_y  kąt " << endl;
+  cout << "   Set  Nazwa_Obiektu  x  y  z  rotX  rotY  rotZ " << endl;
 }
