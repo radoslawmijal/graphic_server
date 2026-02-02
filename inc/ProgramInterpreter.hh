@@ -30,6 +30,8 @@ class ProgramInterpreter : public AbstractComChannel {
 
     virtual int GetSocket() const override { return _socket; }
     virtual std::mutex & UseGuard() override { return _mtx; }
+
+    bool ExecuteListofCommands(std::istream &Strm, bool Parallel);
 };
 
 #endif

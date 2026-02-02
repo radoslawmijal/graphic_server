@@ -83,95 +83,10 @@ bool ProgramInterpreter::ExecProgram(const char* fileName)
     }
 
     istringstream IStrm(processedCode);
-    string cmdName;
 
-    std::vector<std::thread> threads;
-
-    // read commands from the stream
-    while (IStrm >> cmdName) {
-
-        // check for parallel actions block
-        if (cmdName == "Begin_Parallel_Actions") {
-            cout << "Rozpoczeto sekcje równoległa" << endl;
-            
-            // Creade threads for parallel commands
-            while (IStrm >> cmdName && cmdName != "End_Parallel_Actions") {
-                
-                std::shared_ptr<LibInterface> plugin = _libManager.FindPlugin(cmdName);
-                if (!plugin) {
-                    cerr << "Nieznana komenda w bloku: " << cmdName << endl;
-                    continue; 
-                }
-
-                AbstractInterp4Command *cmd = plugin->CreateInterp();
-                if (!cmd) continue;
-
-                if (!cmd->ReadParams(IStrm)) {
-                    cerr << "Blad wczytywania parametrow w bloku równoległym!" << endl;
-                    delete cmd;
-                    return false;
-                }
-
-                // make a thread for command execution
-                threads.emplace_back([cmd, this]() {
-                    cmd->ExecCmd(this->_scn, this);
-                    delete cmd; 
-                });
-            }
-
-            // synch threads
-            for (auto &th : threads) {
-                if (th.joinable()) {
-                    th.join();
-                }
-            }
-
-            // clean up threads vector
-            threads.clear(); 
-            cout << "Zakonczono sekcje równoległa (wątki zsynchronizowane)" << endl;
-            continue; 
-        }
-        
-        // continue with normal command processing
-        cout << "Wczytano polecenie: " << cmdName << endl;
-
-        std::shared_ptr<LibInterface> plugin = _libManager.FindPlugin(cmdName);
-        
-        // check if plugin exists
-        if (!plugin) {
-            cerr << "Nieznana komenda: " << cmdName << endl;
-            string unknown_command; getline(IStrm, unknown_command); 
-            continue; 
-        }
-
-        // create command instance
-        AbstractInterp4Command *cmd = plugin->CreateInterp();
-        
-        // check if command instance was created successfully
-        if (!cmd) {
-            cerr << "Blad tworzenia instancji polecenia!" << endl;
-            continue;
-        }
-
-        // read command parameters
-        if (!cmd->ReadParams(IStrm)) {
-            cerr << "Blad wczytywania parametrow!" << endl;
-            delete cmd; 
-            return false;
-        }
-
-        // execute command
-        cmd->PrintCmd();
-
-        // execute the command
-        if (!cmd->ExecCmd(_scn, this)) {
-            cerr << "Blad wykonania polecenia: " << cmdName << endl;
-            delete cmd;
-            return false;
-        }
-        
-        // cleanup
-        delete cmd;
+    // execute commands from the processed code
+    if (!ExecuteListofCommands(IStrm, false)) {
+        cerr << "Blad podczas interpretacji programu!" << endl;
     }
 
     // send close message to server
@@ -182,3 +97,69 @@ bool ProgramInterpreter::ExecProgram(const char* fileName)
     return true;
 }
 
+bool ProgramInterpreter::ExecuteListofCommands(std::istream &Strm, bool Parallel) {
+    string cmdName;
+    std::vector<std::thread> threads;
+
+    while (Strm >> cmdName) {
+        // end of blocks
+        if (cmdName == "End_Parallel_Actions" || cmdName == "End_Sequential_Actions") {
+            for (std::thread &th : threads) if (th.joinable()) th.join();
+            return true; 
+        }
+
+        // recurence for nested parallel blocks
+        if (cmdName == "Begin_Parallel_Actions") {
+            ExecuteListofCommands(Strm, true);
+            continue;
+        }
+
+        // recurence for nested sequential blocks
+        if (cmdName == "Begin_Sequential_Actions") {
+            if (Parallel) {
+                threads.emplace_back([this, &Strm]() {
+                    this->ExecuteListofCommands(Strm, false);
+                });
+            } else {
+                ExecuteListofCommands(Strm, false);
+            }
+            continue;
+        }
+
+        // standard command processing
+        std::shared_ptr<LibInterface> plugin = _libManager.FindPlugin(cmdName);
+        if (!plugin) { 
+            cerr << "Nieznana komenda: " << cmdName << endl;
+            continue; 
+        }
+
+        AbstractInterp4Command *cmd = plugin->CreateInterp();
+        if (!cmd) continue;
+
+        if (!cmd->ReadParams(Strm)) { 
+            cerr << "Blad wczytywania parametrów dla: " << cmdName << endl;
+            delete cmd;
+            return false; 
+        }
+
+        // execute the command
+        cmd->PrintCmd();
+
+        // separate thread
+        if (Parallel) {
+            threads.emplace_back([cmd, this]() {
+                cmd->ExecCmd(this->_scn, this);
+                delete cmd;
+            });
+        } else {
+            if (!cmd->ExecCmd(_scn, this)) {
+                cerr << "Blad wykonania polecenia: " << cmdName << endl;
+            }
+            delete cmd;
+        }
+    }
+
+    // cleanup threads
+    for (std::thread &th : threads) if (th.joinable()) th.join();
+    return true;
+}
