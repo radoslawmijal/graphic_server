@@ -27,3 +27,7 @@ Uwaga: Po wygenerowaniu dokumentacji uruchamiany jest program less,
 ./cmds_interpreter commands.txt config.xml
 
 struktura build: cmds_interpreter, commands.txt, config.xml, config/config.xsd
+
+
+Trans - wektor wzgledem poprzedniego ukladu wspolrzednych
+Shift - wektor wzgledem podstawowego ukladu wspolrzednych

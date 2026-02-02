@@ -1,5 +1,5 @@
-#define PREDKOSC_RUCHU 10
-#define PREDKOSC_OBROTU 30
+#define PREDKOSC_RUCHU 1
+#define PREDKOSC_OBROTU 3
 #define PAUZA_STARTOWA 1000
 
 Set Podstawa 0 0 0 0 0 10
@@ -8,7 +8,7 @@ Set Podstawa.Ramie1.Ramie2 0 0.7 0 0 0 0
 
 Pause PAUZA_STARTOWA
 
-Move Podstawa PREDKOSC_RUCHU 0.5
+Move Podstawa PREDKOSC_RUCHU 1
 
 Pause 500
 
@@ -20,6 +20,6 @@ Rotate Podstawa.Ramie1.Ramie2 OX PREDKOSC_OBROTU 30
 
 Pause 500
 
-Move Podstawa PREDKOSC_RUCHU 0.2
+Move Podstawa PREDKOSC_RUCHU 1
 
 Pause 2000

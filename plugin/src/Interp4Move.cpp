@@ -70,41 +70,57 @@ bool Interp4Move::ExecCmd(AbstractScene &rScn, AbstractComChannel *pComChann)
         return false;
     }
 
-    // get data in proper units
-    Vector3D currentPos = pObj->GetPosition_m();
-    
-    double angle_yaw_rad = pObj->GetAng_Yaw_deg() * M_PI / 180.0;
-    double angle_pitch_rad = pObj->GetAng_Pitch_deg() * M_PI / 180.0;
+    // calculate animation parameters
+    const int FPS = 50;
+    double TotalTime_s = std::abs(_Distance_mm / _Speed_mmS);
+    int NSteps = static_cast<int>(TotalTime_s * FPS);
+    if (NSteps < 1) NSteps = 1; 
+    double stepLength_mm = _Distance_mm / NSteps;
 
-    // update position
-    currentPos[0] += _Distance_mm * cos(angle_pitch_rad) * cos(angle_yaw_rad);
-    currentPos[1] += _Distance_mm * cos(angle_pitch_rad) * sin(angle_yaw_rad);
-    currentPos[2] += _Distance_mm * sin(angle_pitch_rad);
-    
-    pObj->SetPosition_m(currentPos);
+    int TimePerStep_us = static_cast<int>(1e6 / FPS);
 
-    // prepare command
-    std::ostringstream cmdStream;
-    cmdStream << "UpdateObj Name=" << _Obj_name 
-              << " Shift=(" << currentPos[0] << "," << currentPos[1] << "," << currentPos[2] << ")"
-              << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
-                                 << pObj->GetAng_Pitch_deg() << "," 
-                                 << pObj->GetAng_Yaw_deg() << ")\n";
-    
-    std::string command = cmdStream.str();
+    for (int i = 0; i < NSteps; ++i) {
 
-    // send command to server
-    {
-        std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
-        int socket = pComChann->GetSocket();
+      // get data in proper units
+      Vector3D currentPos = pObj->GetPosition_m();
+      double angle_yaw_rad = pObj->GetAng_Yaw_deg() * M_PI / 180.0;
+      double angle_pitch_rad = pObj->GetAng_Pitch_deg() * M_PI / 180.0;
+
+      // prepare step vector
+      Vector3D Step(
+        stepLength_mm * cos(angle_pitch_rad) * cos(angle_yaw_rad),
+        stepLength_mm * cos(angle_pitch_rad) * sin(angle_yaw_rad),
+        stepLength_mm * sin(angle_pitch_rad)
+      );
+
+      // update object position
+      Vector3D NewPos = pObj->GetPosition_m();
+      NewPos += Step;
+      pObj->SetPosition_m(NewPos);
+
+      // prepare command
+      std::ostringstream cmdStream;
+      cmdStream << "UpdateObj Name=" << _Obj_name 
+                << " Shift=(" << currentPos[0] << "," << currentPos[1] << "," << currentPos[2] << ")"
+                << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
+                                   << pObj->GetAng_Pitch_deg() << "," 
+                                   << pObj->GetAng_Yaw_deg() << ")\n";
         
-        if (write(socket, command.c_str(), command.length()) < 0) {
+      std::string command = cmdStream.str();
+
+      // send command to server
+      {
+          std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
+          int socket = pComChann->GetSocket();
+            
+          if (write(socket, command.c_str(), command.length()) < 0) {
             std::cerr << "Blad wysylania polecenia do serwera!" << std::endl;
             return false;
-        }
-    }
+          }
+      }
 
-    usleep(100000);
+        usleep(TimePerStep_us);
+    }
 
     return true;
 }

@@ -60,8 +60,8 @@ const char* Interp4Rotate::GetCmdName() const
  *
  */
 bool Interp4Rotate::ExecCmd( AbstractScene      &rScn, 
-			   AbstractComChannel *pComChann
-			 )
+                               AbstractComChannel *pComChann
+                             )
 {
     AbstractMobileObj* pObj = rScn.FindMobileObj(_Obj_name.c_str());
     
@@ -71,44 +71,58 @@ bool Interp4Rotate::ExecCmd( AbstractScene      &rScn,
         return false;
     }
 
-    // perform rotation
-    if (_Axis_name == "OX") {
-        double current = pObj->GetAng_Roll_deg();
-        pObj->SetAng_Roll_deg(current + _Angle_degree);
-    } else if (_Axis_name == "OY") {
-        double current = pObj->GetAng_Pitch_deg();
-        pObj->SetAng_Pitch_deg(current + _Angle_degree);
-    } else if (_Axis_name == "OZ") {
-        double current = pObj->GetAng_Yaw_deg();
-        pObj->SetAng_Yaw_deg(current + _Angle_degree);
-    } else {
-        std::cerr << "Blad: Nieznana os obrotu: " << _Axis_name << std::endl;
-        return false;
-    }
+    // animation parameters
+    const int FPS = 50;
+    double TotalTime_s = std::abs(_Angle_degree / _Angle_speed);
+    int NSteps = static_cast<int>(TotalTime_s * FPS);
+    if (NSteps < 1) NSteps = 1; 
 
-    // prepare command to send to server
-    std::ostringstream cmdStream;
-    const Vector3D &pos = pObj->GetPosition_m();
-    
-    cmdStream << "UpdateObj Name=" << _Obj_name 
-              << " Shift=(" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
-              << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
-                                 << pObj->GetAng_Pitch_deg() << "," 
-                                 << pObj->GetAng_Yaw_deg() << ")\n";
-    
-    std::string command = cmdStream.str();
+    double stepAngle = _Angle_degree / NSteps;
+    int TimePerStep_us = static_cast<int>(1e6 / FPS);
 
-    // send command to server
-    {
-        std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
-        int socket = pComChann->GetSocket();
-        if (write(socket, command.c_str(), command.length()) < 0) {
-            std::cerr << "Blad wysylania polecenia Rotate do serwera!" << std::endl;
+    for (int i = 0; i < NSteps; ++i) {
+
+        // perform rotation
+        if (_Axis_name == "OX") {
+            double current = pObj->GetAng_Roll_deg();
+            pObj->SetAng_Roll_deg(current + stepAngle);
+        } else if (_Axis_name == "OY") {
+            double current = pObj->GetAng_Pitch_deg();
+            pObj->SetAng_Pitch_deg(current + stepAngle);
+        } else if (_Axis_name == "OZ") {
+            double current = pObj->GetAng_Yaw_deg();
+            pObj->SetAng_Yaw_deg(current + stepAngle);
+        } else {
+            std::cerr << "Blad: Nieznana os obrotu: " << _Axis_name << std::endl;
             return false;
         }
+
+        // prepare command to send to server
+        std::ostringstream cmdStream;
+        const Vector3D &pos = pObj->GetPosition_m();
+        
+        cmdStream << "UpdateObj Name=" << _Obj_name 
+                  << " Shift=(" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
+                  << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
+                                     << pObj->GetAng_Pitch_deg() << "," 
+                                     << pObj->GetAng_Yaw_deg() << ")\n";
+        
+        std::string command = cmdStream.str();
+
+        // send command to server
+        {
+            std::lock_guard<std::mutex> Lock(pComChann->UseGuard());
+            int socket = pComChann->GetSocket();
+
+            if (write(socket, command.c_str(), command.length()) < 0) {
+                std::cerr << "Blad wysylania polecenia Rotate do serwera!" << std::endl;
+                return false;
+            }
+        }
+
+        usleep(TimePerStep_us); 
     }
 
-    usleep(100000); 
     return true;
 }
 
