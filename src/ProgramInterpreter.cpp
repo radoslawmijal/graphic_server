@@ -10,6 +10,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <thread>    
+#include <vector>    
+#include <functional>
 
 using namespace std;
 
@@ -82,9 +85,54 @@ bool ProgramInterpreter::ExecProgram(const char* fileName)
     istringstream IStrm(processedCode);
     string cmdName;
 
+    std::vector<std::thread> threads;
+
     // read commands from the stream
     while (IStrm >> cmdName) {
+
+        // check for parallel actions block
+        if (cmdName == "Begin_Parallel_Actions") {
+            cout << "Rozpoczeto sekcje równoległa" << endl;
+            
+            // Creade threads for parallel commands
+            while (IStrm >> cmdName && cmdName != "End_Parallel_Actions") {
+                
+                std::shared_ptr<LibInterface> plugin = _libManager.FindPlugin(cmdName);
+                if (!plugin) {
+                    cerr << "Nieznana komenda w bloku: " << cmdName << endl;
+                    continue; 
+                }
+
+                AbstractInterp4Command *cmd = plugin->CreateInterp();
+                if (!cmd) continue;
+
+                if (!cmd->ReadParams(IStrm)) {
+                    cerr << "Blad wczytywania parametrow w bloku równoległym!" << endl;
+                    delete cmd;
+                    return false;
+                }
+
+                // make a thread for command execution
+                threads.emplace_back([cmd, this]() {
+                    cmd->ExecCmd(this->_scn, this);
+                    delete cmd; 
+                });
+            }
+
+            // synch threads
+            for (auto &th : threads) {
+                if (th.joinable()) {
+                    th.join();
+                }
+            }
+
+            // clean up threads vector
+            threads.clear(); 
+            cout << "Zakonczono sekcje równoległa (wątki zsynchronizowane)" << endl;
+            continue; 
+        }
         
+        // continue with normal command processing
         cout << "Wczytano polecenie: " << cmdName << endl;
 
         std::shared_ptr<LibInterface> plugin = _libManager.FindPlugin(cmdName);
