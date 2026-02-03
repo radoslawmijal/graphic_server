@@ -101,7 +101,8 @@ bool Interp4Move::ExecCmd(AbstractScene &rScn, AbstractComChannel *pComChann)
       // prepare command
       std::ostringstream cmdStream;
       cmdStream << "UpdateObj Name=" << _Obj_name 
-                << " Shift=(" << currentPos[0] << "," << currentPos[1] << "," << currentPos[2] << ")"
+                << " Shift=(" << pObj->GetShift()[0] << "," << pObj->GetShift()[1] << "," << pObj->GetShift()[2] << ")"
+                << " Trans_m=(" << currentPos[0] << "," << currentPos[1] << "," << currentPos[2] << ")"
                 << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
                                    << pObj->GetAng_Pitch_deg() << "," 
                                    << pObj->GetAng_Yaw_deg() << ")\n";

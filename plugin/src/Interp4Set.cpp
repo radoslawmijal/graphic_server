@@ -84,7 +84,8 @@ bool Interp4Set::ExecCmd( AbstractScene      &rScn,
   // prepare command string
   std::ostringstream cmdStream;
   cmdStream << "UpdateObj Name=" << _ObjName 
-            << " Shift=(" << _x_pos << "," << _y_pos << "," << _z_pos << ")"
+            << " Shift=(" << pObj->GetShift()[0] << "," << pObj->GetShift()[1] << "," << pObj->GetShift()[2] << ")"
+            << " Trans_m=(" << _x_pos << "," << _y_pos << "," << _z_pos << ")"
             << " RotXYZ_deg=(" << _rot_x << "," << _rot_y << "," << _rot_z << ")\n";
   
   std::string command = cmdStream.str();

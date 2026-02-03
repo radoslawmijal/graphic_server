@@ -102,7 +102,8 @@ bool Interp4Rotate::ExecCmd( AbstractScene      &rScn,
         const Vector3D &pos = pObj->GetPosition_m();
         
         cmdStream << "UpdateObj Name=" << _Obj_name 
-                  << " Shift=(" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
+                  << " Shift=(" << pObj->GetShift()[0] << "," << pObj->GetShift()[1] << "," << pObj->GetShift()[2] << ")"
+                  << " Trans_m=(" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
                   << " RotXYZ_deg=(" << pObj->GetAng_Roll_deg() << "," 
                                      << pObj->GetAng_Pitch_deg() << "," 
                                      << pObj->GetAng_Yaw_deg() << ")\n";

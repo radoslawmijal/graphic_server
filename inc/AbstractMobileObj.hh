@@ -79,6 +79,17 @@
         *         że współrzędne wyrażone są w metrach.
         */
        virtual const Vector3D & GetPosition_m() const = 0;
+        /*!
+        * \brief Zmienia przesunięcie obiektu.
+        *  Zmienia wartość elementów wektora przesunięcia.
+        *  \param[in] rShift - nowy wektor przesunięcia.
+        */
+        virtual void SetShift(const Vector3D &rShift) = 0;
+        /*!
+        * \brief Udostępnia wektor przesunięcia.
+        *  \return Referencja do wektora przesunięcia.
+        */
+        virtual const Vector3D & GetShift() const = 0;
        /*!
         * \brief Zmienia współrzędne aktualnej pozycji obiektu.
         *
