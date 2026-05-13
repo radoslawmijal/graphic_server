@@ -46,8 +46,8 @@ bool ReadFile(const char* sFileName, Configuration &rConfig, ProgramInterpreter 
 
    // Parse the XML file
    try {
-     if (!pParser->loadGrammar("config/config.xsd", xercesc::Grammar::SchemaGrammarType, true)) {
-       cerr << "!!! Plik config/config.xsd nie moze zostac wczytany." << endl;
+     if (!pParser->loadGrammar("../config/config.xsd", xercesc::Grammar::SchemaGrammarType, true)) {
+       cerr << "!!! Plik ../config/config.xsd nie moze zostac wczytany." << endl;
        return false;
      }
      pParser->setFeature(XMLUni::fgXercesUseCachedGrammarInParse, true);

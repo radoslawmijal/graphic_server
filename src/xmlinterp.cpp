@@ -65,7 +65,17 @@ void XMLInterp4Config::ProcessLibAttrs(const xercesc::Attributes  &rAttrs)
  XMLSize_t  Size = 0;
  char* sLibName = xercesc::XMLString::transcode(rAttrs.getValue(Size));
 
- std::string LibPath = "../build/plugin/" + std::string(sLibName);
+ const char* plugin_path_env = std::getenv("PLUGIN_DIR");
+ std::string plugin_base_path = "plugin/"; // Default path, relative to build dir
+
+ if (plugin_path_env) {
+     plugin_base_path = plugin_path_env;
+     if (!plugin_base_path.empty() && plugin_base_path.back() != '/') {
+         plugin_base_path += '/';
+     }
+ }
+
+ std::string LibPath = plugin_base_path + std::string(sLibName);
 
  cout << "  Szukam wtyczki w: " << LibPath << endl;
 
@@ -338,4 +348,3 @@ void XMLInterp4Config::warning(const xercesc::SAXParseException&  rException)
   cerr << "Ostrzezenie XML: " << sMessage << " (linia: " << rException.getLineNumber() << ")" << endl;
   xercesc::XMLString::release(&sMessage);
 }
-
