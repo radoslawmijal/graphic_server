@@ -12,7 +12,7 @@ This project is a C++ application that interprets a custom scripting language to
 
 ## Preview
 
-![Server with running example program](<img width="596" height="401" alt="Image" src="https://github.com/user-attachments/assets/194bcaf5-8012-4da8-b6b7-3a92205d53de" />)
+![Server with running example program](https://private-user-images.githubusercontent.com/160499256/591910912-194bcaf5-8012-4da8-b6b7-3a92205d53de.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Nzg2ODc2NTgsIm5iZiI6MTc3ODY4NzM1OCwicGF0aCI6Ii8xNjA0OTkyNTYvNTkxOTEwOTEyLTE5NGJjYWY1LTgwMTItNGRhOC1iNmI3LTNhOTIyMDVkNTNkZS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNTEzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDUxM1QxNTQ5MThaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00NjIxNDVhOTNjNDRmMjVhMzc0NmQ4ZGNiZDQyZjcxNzM2MWE3OTlhMDQ5NjI4N2Q0M2UxZmY5YzY1YmQ3NTNkJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.P6-yajV6qJx98JpF6hTZb0_kyVlbiehXFj6f0P5E6TM)
 
 ## Dependencies
 
